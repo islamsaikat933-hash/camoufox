@@ -397,6 +397,90 @@ async with AsyncCamoufox() as browser:
 
 ---
 
+### Proxy Rotation
+
+Camoufox ships with a built-in proxy rotation system so every browser session
+gets its own **fresh exit IP**. Two rotation modes are provided
+(available through both the sync and async APIs):
+
+#### 1. Rotating gateway
+
+A single rotating-gateway endpoint hands out a new exit IP for every
+connection. Camoufox stamps each session with a unique sticky-session token so
+every session stays pinned to one IP — and no two concurrent sessions ever
+share one.
+
+```python
+from camoufox.sync_api import Camoufox, NewContext
+from camoufox.proxy import RotatingGateway
+
+gateway = RotatingGateway("http://user:pass@gateway.example.com:8000")
+
+with Camoufox() as browser:
+    # every context gets a brand-new exit IP
+    with NewContext(browser, proxy_source=gateway) as context:
+        page = context.new_page()
+        page.goto("https://example.com")   # exit IP #1
+    with NewContext(browser, proxy_source=gateway) as context:
+        page = context.new_page()
+        page.goto("https://example.com")   # exit IP #2
+```
+
+The async equivalent uses `AsyncCamoufox` and `AsyncNewContext`.
+
+#### 2. Proxy list (text file)
+
+Drop your proxies into a plain-text file, one per line, and Camoufox will
+rotate through them round-robin — one proxy per session. Lines starting with
+`#` are treated as comments.
+
+```text
+# proxies.txt
+user1:pass1@10.0.0.1:8080
+user2:pass2@10.0.0.2:8080
+socks5://user3:pass3@10.0.0.3:1080
+```
+
+```python
+from camoufox.sync_api import Camoufox, NewContext
+from camoufox.proxy import TextFileProxy
+
+pool = TextFileProxy("proxies.txt")   # reloads the file on every rotation
+
+with Camoufox() as browser:
+    for _ in range(4):
+        with NewContext(browser, proxy_source=pool) as context:
+            page = context.new_page()
+            page.goto("https://example.com")
+```
+
+#### Persistent contexts
+
+For `persistent_context=True`, pass the source straight to the browser launch
+— a fresh proxy is drawn for every launch:
+
+```python
+from camoufox.sync_api import Camoufox
+from camoufox.proxy import RotatingGateway
+
+gateway = RotatingGateway("http://user:pass@gateway.example.com:8000")
+with Camoufox(headless=True, persistent_context=True, proxy_source=gateway) as context:
+    page = context.new_page()
+    page.goto("https://example.com")
+```
+
+**Notes**
+
+* Both `RotatingGateway` and `TextFileProxy` implement the
+  `ProxySource` protocol, so you can build custom sources for any provider.
+* Proxy entries support `http`, `https`, `socks4` and `socks5` schemes,
+  with optional `user:password@` credentials.
+* When using a proxy, pass `geoip=True` so the browser's timezone, locale and
+  WebRTC fingerprints match the proxy's country — Camoufox warns you
+  otherwise.
+
+---
+
 ## Capabilities
 
 Below is a list of patches and features implemented in Camoufox.

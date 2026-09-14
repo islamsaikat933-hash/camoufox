@@ -25,6 +25,7 @@ from .fingerprints import from_browserforge, from_preset, generate_fingerprint, 
 from .geolocation import geoip_allowed, get_geolocation
 from .ip import Proxy, public_ip, valid_ipv4, valid_ipv6
 from .locales import handle_locales
+from .proxy import ProxySource
 import warnings
 
 from .pkgman import (
@@ -601,6 +602,7 @@ def launch_options(
     browser: Optional[str] = None,
     firefox_user_prefs: Optional[Dict[str, Any]] = None,
     proxy: Optional[Dict[str, str]] = None,
+    proxy_source: Optional[ProxySource] = None,
     enable_cache: Optional[bool] = None,
     args: Optional[List[str]] = None,
     env: Optional[Dict[str, Union[str, float, bool]]] = None,
@@ -742,6 +744,13 @@ def launch_options(
     # Warn the user for manual config settings
     if not i_know_what_im_doing:
         warn_manual_config(config)
+
+    # Resolve a static proxy from the rotating source (if configured).
+    # Only one session's worth of proxy is drawn per launch; per-context
+    # rotation is handled by `NewContext`/`AsyncNewContext` for non-persistent
+    # usage. Persistent contexts get a fresh entry on every launch.
+    if proxy_source is not None:
+        proxy = proxy_source.next().as_playwright_proxy()
 
     # Snapshot which domains the USER set before fingerprint generation fills in
     # the rest. The post-generation BrowserForge-correction fixes below must
