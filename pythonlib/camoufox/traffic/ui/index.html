@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Camoufox — Real-Human Traffic Simulator</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<header>
+  <h1>🕵️ Camoufox <span>Real-Human Traffic Simulator</span></h1>
+  <p class="sub">Every visit looks like a real person — human-like spacing, search/social/direct entries, wandering, scrolling &amp; leaving. Your site sees organic traffic, not a bot stampede.</p>
+</header>
+
+<main>
+  <!-- LEFT: configuration -->
+  <section class="card" id="config">
+    <h2>Run configuration</h2>
+
+    <label>Target website <i>(landing URL)</i></label>
+    <input id="landing" type="url" placeholder="https://yoursite.com" value="https://httpbin.org/anything">
+
+    <div class="row">
+      <div>
+        <label>Visitors <i>(to simulate)</i></label>
+        <input id="visitors" type="number" min="1" max="1000000" value="100">
+      </div>
+      <div>
+        <label>Over <i>(hours)</i></label>
+        <input id="duration" type="number" min="0.1" max="720" step="0.5" value="24">
+      </div>
+      <div>
+        <label>Max simultaneous</label>
+        <input id="concurrent" type="number" min="1" max="500" value="8">
+      </div>
+    </div>
+
+    <h3>Proxy rotation <span class="hint">(per-session IP rotation)</span></h3>
+    <p class="field-note">Use one of the options below — every session gets a fresh proxy. Leave all empty for direct connections.</p>
+    <div class="proxy-tabs">
+      <button class="tab active" data-tab="gateway">⚡ Gateway</button>
+      <button class="tab" data-tab="file">📄 Text file</button>
+      <button class="tab" data-tab="single">🔌 Static proxy</button>
+    </div>
+
+    <div class="proxy-panel active" id="panel-gateway">
+      <label>Rotating gateway endpoint</label>
+      <input id="gateway" type="text" placeholder="http://user:pass@gateway.example.com:8000">
+      <p class="field-note">Each session gets a new sticky-session token on this endpoint.</p>
+    </div>
+
+    <div class="proxy-panel" id="panel-file">
+      <label>Text-file path (one proxy per line)</label>
+      <input id="proxy_file" type="text" placeholder="/path/to/proxies.txt">
+      <p class="field-note">Round-robin; dead proxies auto-quarantined. Lines like <code>socks5://user:pass@host:port</code>.</p>
+    </div>
+
+    <div class="proxy-panel" id="panel-single">
+      <label>Static proxy URL</label>
+      <input id="proxy" type="text" placeholder="http://user:pass@host:port">
+      <p class="field-note">Same proxy for every session (no rotation).</p>
+    </div>
+
+    <div class="actions">
+      <button id="start" class="primary">▶ Start run</button>
+      <button id="stop" disabled>■ Stop</button>
+    </div>
+    <p id="error" class="error"></p>
+  </section>
+
+  <!-- RIGHT: live dashboard -->
+  <section class="card" id="live">
+    <h2>Live traffic <span class="dot" id="runState"></span></h2>
+
+    <div class="gauges">
+      <div class="gauge"><b id="g-launched">0</b><span>Planned</span></div>
+      <div class="gauge"><b id="g-active">0</b><span>Active now</span></div>
+      <div class="gauge"><b id="g-done">0</b><span>Completed</span></div>
+      <div class="gauge"><b id="g-failed">0</b><span>Failed</span></div>
+      <div class="gauge"><b id="g-pages">0</b><span>Pages viewed</span></div>
+    </div>
+
+    <div class="chart">
+      <h3>Arrival pacing <span class="hint" id="windowLabel"></span></h3>
+      <div id="timeline" class="bars"></div>
+    </div>
+
+    <div class="channels">
+      <h3>Traffic sources</h3>
+      <div id="channelList" class="channel-list"></div>
+    </div>
+
+    <div class="meta">
+      <div><span>Duration</span><b id="m-duration">—</b></div>
+      <div><span>Concurrency</span><b id="m-conc">—</b></div>
+      <div><span>Avg dwell</span><b id="m-dwell">—</b></div>
+      <div><span>Proxy</span><b id="m-proxy">none</b></div>
+    </div>
+  </section>
+</main>
+
+<footer>Camoufox Real-Human Traffic Simulator · <a href="https://github.com/islamsaikat933-hash/camoufox" target="_blank" rel="noopener">GitHub</a></footer>
+
+<script src="app.js"></script>
+</body>
+</html>
