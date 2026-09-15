@@ -481,6 +481,43 @@ with Camoufox(headless=True, persistent_context=True, proxy_source=gateway) as c
 
 ---
 
+## Traffic Simulator
+
+`camoufox.traffic` simulates **real-human traffic** for load and QA testing:
+visitors arrive at random times across a configurable window (following a
+diurnal activity curve), come from different channels (direct / search /
+social / referral), and behave like people — wandering pages, scrolling and
+dwelling before leaving.
+
+Launch the GUI dashboard with:
+
+```bash
+PYTHONPATH=pythonlib python -m camoufox.traffic
+# open http://127.0.0.1:8080/
+```
+
+or use it programmatically, combining it with the proxy rotation above so
+every session exits through a different IP:
+
+```python
+import asyncio
+from camoufox.traffic.engine import build_engine_from_config
+
+engine = build_engine_from_config(
+    landing="https://yoursite.com",
+    visitors=100,
+    duration_hours=24,
+    max_concurrent=8,
+    gateway="http://user:pass@gateway.example.com:8000",  # per-session proxies
+)
+asyncio.run(engine.start())
+```
+
+See `pythonlib/camoufox/traffic/README.md` for the full API, dashboard
+features, stats schema and testing instructions.
+
+---
+
 ## Capabilities
 
 Below is a list of patches and features implemented in Camoufox.
